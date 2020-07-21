@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+
+      .mapboxgl-popup {
+        max-width: 400px;
+        font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
+      }
+    </style>
+    <title>A Map of Federal Real Property</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.11.1/mapbox-gl.js"></script>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v1.11.1/mapbox-gl.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <script>
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoibG9nYW53IiwiYSI6IlQzWHJqc3cifQ.KY3j-syHXeYmI69JmLqGqQ";
+      var map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/loganw/ckcv5mz6g04xo1jpeb8nu2r7n/draft",
+        center: [-98.5795, 39.8283],
+        zoom: 4
+      });
+
+      // Create a popup, but don't add it to the map yet.
+      var popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false
+      });
+
+      map.on("mouseenter", "frp", function (e) {
+        // Change the cursor style as a UI indicator.
+        map.getCanvas().style.cursor = "pointer";
+
+        var coordinates = e.features[0].geometry.coordinates.slice();
+        // var description = e.features[0].properties.description;
+        var description = `<div><span style="font-weight:bold;">Agency:</span> ${e.features[0].properties["Agency"]}</div>
+          <div><span style="font-weight:bold;">Type:</span> ${e.features[0].properties["Real Property Type"]}</div>
+          <div><span style="font-weight:bold;">Use:</span> ${e.features[0].properties["Real Property Use"]}</div>
+          <div><span style="font-weight:bold;">Interest:</span> ${e.features[0].properties["Legal Interest Indicator"]}</div>`;
+
+        // Ensure that if the map is zoomed out such that multiple
+        // copies of the feature are visible, the popup appears
+        // over the copy being pointed to.
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+          coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
+
+        // Populate the popup and set its coordinates
+        // based on the feature found.
+        popup.setLngLat(coordinates).setHTML(description).addTo(map);
+      });
+
+      map.on("mouseleave", "frp", function () {
+        map.getCanvas().style.cursor = "";
+        popup.remove();
+      });
+    </script>
+  </body>
+</html>
